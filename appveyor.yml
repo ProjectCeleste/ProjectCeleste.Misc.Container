@@ -52,10 +52,18 @@ init:
             $env:Celeste_IsDeploy = "true"
             $env:Celeste_IsTagAndRelease = "false"
         }
-        elseif ($env:CONFIGURATION -eq "Release")
+        if ($env:CONFIGURATION -eq "Release")
         {
-            $env:Celeste_IsDeploy = "false"
-            $env:Celeste_IsTagAndRelease = "true"
+            if ($env:APPVEYOR_REPO_COMMIT_MESSAGE.Contains("[ci deploy]"))
+            {
+                $env:Celeste_IsDeploy = "true"
+                $env:Celeste_IsTagAndRelease = "false"
+            }
+            else
+            {
+                $env:Celeste_IsDeploy = "false"
+                $env:Celeste_IsTagAndRelease = "true"
+            }
         }
         if ($env:APPVEYOR_REPO_TAG_NAME.StartsWith("v")) 
         {
