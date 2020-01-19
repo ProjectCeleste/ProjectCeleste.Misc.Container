@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <PackageId>ProjectCeleste.Misc.Container</PackageId>
+    <PackageLicense>https://github.com/ProjectCeleste/ProjectCeleste.Misc.Container/blob/master/LICENSE</PackageLicense>
+    <PackageProjectUrl>https://www.projectceleste.com</PackageProjectUrl>
+    <PackageIcon>icon.png</PackageIcon>
+    <RepositoryUrl>https://github.com/ProjectCeleste/ProjectCeleste.Misc.Container</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <Description>ProjectCeleste.Misc.Container For Age Of Empires Online Celeste Fan Project
+
+Visit Us: https://www.projectceleste.com/
+
+Age of Empires Online © Microsoft Corporation. Celeste Fan Project was created under Microsoft's Game Content Usage Rules using assets from Age of Empires Online, and it is not endorsed by or affiliated with Microsoft (See: https://www.xbox.com/en-us/developers/rules).
+	</Description>
+    <PackageTags>projectceleste aoeo ageofempires</PackageTags>
+    <Authors>ProjectCeleste</Authors>
+    <Company />
+    <Product>ProjectCeleste.Misc.Container</Product>
+    <Version>0.0.0.0</Version>
+    <AssemblyVersion>0.0.0.0</AssemblyVersion>
+    <FileVersion>0.0.0.0</FileVersion>
+    <InformationalVersion>v0.0</InformationalVersion>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <LangVersion>latest</LangVersion>
+    <Copyright />
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <DefineConstants>TRACE</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="icon.png" Pack="true" PackagePath="" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="System.ComponentModel.Annotations" Version="4.7.0" />
+  </ItemGroup>
+</Project>
