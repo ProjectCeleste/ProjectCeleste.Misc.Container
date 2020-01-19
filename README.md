@@ -8,7 +8,7 @@ Visit Us: https://www.projectceleste.com/
 
 Nuget Package: https://www.nuget.org/packages/ProjectCeleste.Misc.Container/
 
-Nigthly Build Nuget Feed: https://ci.appveyor.com/nuget/projectceleste-misc-container-s72ccyk4g68n
+Nigthly Build Nuget Feed: https://ci.appveyor.com/nuget/projectceleste-misc-container-5ea92n2p3l84
 
 -------------------------------------------------------------------------------
 
