@@ -47,11 +47,6 @@ init:
     if ($env:APPVEYOR_REPO_TAG -eq "true")
     {
         $env:Celeste_IVersion = "$env:APPVEYOR_REPO_TAG_NAME"
-        if ($env:APPVEYOR_REPO_COMMIT_MESSAGE.Contains("[ci deploy]"))
-        {
-            $env:Celeste_IsDeploy = "true"
-            $env:Celeste_IsTagAndRelease = "false"
-        }
         if ($env:CONFIGURATION -eq "Release")
         {
             if ($env:APPVEYOR_REPO_COMMIT_MESSAGE.Contains("[ci deploy]"))
