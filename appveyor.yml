@@ -263,7 +263,16 @@ deploy:
     artifact: NuGet
     on:
       Celeste_IsDeploy: true
-    
+
+  # Deploy NuGet Github
+  - provider: NuGet
+    server: https://nuget.pkg.github.com/ProjectCeleste/index.json
+    api_key: '$(access_token)'
+    username: '$(github_user)'
+    artifact: NuGet
+    on:
+      Celeste_IsDeploy: true
+ 
 # scripts to run before deployment
 before_deploy:
 
