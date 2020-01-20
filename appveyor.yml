@@ -230,7 +230,9 @@ artifacts:
     name: ProjectCeleste.Misc.Container
     type: zip
   - path: 'src\bin\Release\ProjectCeleste.Misc.Container.*.*nupkg'
-    name: NuGet
+    name: NuGet_Package
+  - path: 'src\bin\Release\ProjectCeleste.Misc.Container.*.nupkg'
+    name: GitHub_Package
     
 #---------------------------------#
 #     deployment configuration    #
@@ -241,7 +243,7 @@ artifacts:
 deploy:
 
   # Deploy to GitHub Releases
-  - provider: GitHub
+  - provider: GitHub Release
     tag: $(APPVEYOR_REPO_TAG_NAME)
     description: '[View CHANGELOG.md](https://github.com/ProjectCeleste/ProjectCeleste.Misc.Container/blob/master/CHANGELOG.md)'
     release: ProjectCeleste.Misc.Container $(Celeste_IVersion)
@@ -253,24 +255,23 @@ deploy:
     on:
       Celeste_IsDeploy: true
 
-  # Deploy NuGet
-  - provider: NuGet
+  # Deploy to NuGet
+  - provider: NuGet Package
     server:                  # remove to push to NuGet.org
     api_key:
       secure: JurVq4I9wOP95B7ZAerkZlt/+f5MOQahoOCk9ScEA4bF6PIWe6iwEIMjhyUnnWgX
     skip_symbols: false
     symbol_server:           # remove to push symbols to SymbolSource.org
-    artifact: NuGet
+    artifact: NuGet_Package
     on:
       Celeste_IsDeploy: true
 
-  # Deploy NuGet Github
-  - provider: NuGet
+  # Deploy to GitHub Packages
+  - provider: GitHub Package
     server: https://nuget.pkg.github.com/ProjectCeleste/index.json
     api_key: '$(access_token)'
-    skip_symbols: true
     username: '$(github_user)'
-    artifact: NuGet
+    artifact: GitHub_Package
     on:
       Celeste_IsDeploy: true
  
