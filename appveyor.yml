@@ -243,7 +243,7 @@ artifacts:
 deploy:
 
   # Deploy to GitHub Releases
-  - provider: GitHub Release
+  - provider: GitHub
     tag: $(APPVEYOR_REPO_TAG_NAME)
     description: '[View CHANGELOG.md](https://github.com/ProjectCeleste/ProjectCeleste.Misc.Container/blob/master/CHANGELOG.md)'
     release: ProjectCeleste.Misc.Container $(Celeste_IVersion)
@@ -256,7 +256,7 @@ deploy:
       Celeste_IsDeploy: true
 
   # Deploy to NuGet
-  - provider: NuGet Package
+  - provider: NuGet
     server:                  # remove to push to NuGet.org
     api_key:
       secure: JurVq4I9wOP95B7ZAerkZlt/+f5MOQahoOCk9ScEA4bF6PIWe6iwEIMjhyUnnWgX
@@ -267,7 +267,7 @@ deploy:
       Celeste_IsDeploy: true
 
   # Deploy to GitHub Packages
-  - provider: GitHub Package
+  - provider: NuGet
     server: https://nuget.pkg.github.com/ProjectCeleste/index.json
     api_key: '$(access_token)'
     username: '$(github_user)'
