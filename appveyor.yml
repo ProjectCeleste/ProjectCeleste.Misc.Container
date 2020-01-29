@@ -231,8 +231,6 @@ artifacts:
     type: zip
   - path: 'src\bin\Release\ProjectCeleste.Misc.Container.*.*nupkg'
     name: NuGet_Package
-  - path: 'src\bin\Release\ProjectCeleste.Misc.Container.*.nupkg'
-    name: GitHub_Package
     
 #---------------------------------#
 #     deployment configuration    #
@@ -271,7 +269,9 @@ deploy:
     server: https://nuget.pkg.github.com/ProjectCeleste/index.json
     api_key: '$(access_token)'
     username: '$(github_user)'
-    artifact: GitHub_Package
+    skip_symbols: true
+    symbol_server:           # remove to push symbols to SymbolSource.org
+    artifact: /.nupkg/
     on:
       Celeste_IsDeploy: true
  
