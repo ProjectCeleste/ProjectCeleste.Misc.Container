@@ -1,91 +1,54 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
-using System.Xml.Serialization;
-using Newtonsoft.Json;
+using JetBrains.Annotations;
 using ProjectCeleste.Misc.Container.Interface;
-using ProjectCeleste.Misc.Container.Misc;
 
 namespace ProjectCeleste.Misc.Container.Model.Observable
 {
-    [JsonConverter(typeof(ContainerJsonConverter))]
-    [JsonArray(Title = "ObservableContainer<TKey, TValue>", Id = "ObservableContainer<TKey, TValue>",
-        AllowNullItems = false)]
-    [XmlRoot("ObservableContainer&lt;TKey, TValue&gt;")]
-    public sealed class ObservableContainer<TKey, TValue> : IObservableContainer<TKey, TValue> where TValue : class
+    public class ObservableContainer<TKey, TValue> : IObservableContainer<TKey, TValue> where TValue : class
     {
-        [XmlIgnore] [JsonIgnore] private readonly Func<TValue, TKey> _keySelector;
-        [XmlIgnore] [JsonIgnore] private readonly IDictionary<TKey, TValue> _valuesDic;
+        private readonly Func<TValue, TKey> _keySelector;
+        private protected readonly IDictionary<TKey, TValue> ValuesDic;
 
-        public ObservableContainer() : this(ContainerUtils.GetKeySelector<TValue, TKey>(), Array.Empty<TValue>(),
-            ContainerEqualityComparer.GetCustomDefaultEqualityComparer<TKey>())
+        public ObservableContainer([NotNull] Func<TValue, TKey> keySelector) : this(keySelector, Array.Empty<TValue>(),
+            EqualityComparer<TKey>.Default)
         {
         }
 
-        public ObservableContainer(IEnumerable<TValue> values) : this(ContainerUtils.GetKeySelector<TValue, TKey>(),
-            values,
-            ContainerEqualityComparer.GetCustomDefaultEqualityComparer<TKey>())
+        public ObservableContainer([NotNull] Func<TValue, TKey> keySelector, [NotNull] IEqualityComparer<TKey> comparer)
+            : this(keySelector,
+                Array.Empty<TValue>(), comparer)
         {
         }
 
-        public ObservableContainer(IEnumerable<TValue> values, IEqualityComparer<TKey> comparer) : this(
-            ContainerUtils.GetKeySelector<TValue, TKey>(), values, comparer)
+        public ObservableContainer([NotNull] Func<TValue, TKey> keySelector,
+            [NotNull] [ItemNotNull] IEnumerable<TValue> values) : this(keySelector,
+            values, EqualityComparer<TKey>.Default)
         {
         }
 
-        public ObservableContainer(Func<TValue, TKey> keySelector) : this(keySelector, Array.Empty<TValue>(),
-            ContainerEqualityComparer.GetCustomDefaultEqualityComparer<TKey>())
-        {
-        }
-
-        public ObservableContainer(Func<TValue, TKey> keySelector, IEqualityComparer<TKey> comparer) : this(keySelector,
-            Array.Empty<TValue>(), comparer)
-        {
-        }
-
-        public ObservableContainer(Func<TValue, TKey> keySelector, IEnumerable<TValue> values) : this(keySelector,
-            values, ContainerEqualityComparer.GetCustomDefaultEqualityComparer<TKey>())
-        {
-        }
-
-        public ObservableContainer(Func<TValue, TKey> keySelector, IEnumerable<TValue> values,
-            IEqualityComparer<TKey> comparer)
+        public ObservableContainer([NotNull] Func<TValue, TKey> keySelector,
+            [NotNull] [ItemNotNull] IEnumerable<TValue> values,
+            [NotNull] IEqualityComparer<TKey> comparer)
         {
             _keySelector = keySelector;
-            _valuesDic = new Dictionary<TKey, TValue>(comparer);
-            var exceptions = new List<Exception>();
-            foreach (var value in values)
-            {
-                try
-                {
-                    var key = _keySelector(value);
-                    _valuesDic.Add(key, value);
-                }
-                catch (ArgumentException e)
-                {
-                    exceptions.Add(e);
-                }
-            }
-
-            if (exceptions.Count > 0)
-                throw new AggregateException(exceptions);
+            ValuesDic = new Dictionary<TKey, TValue>(comparer);
+            Add(values);
         }
 
-        [XmlIgnore]
-        [JsonIgnore]
-        public TValue this[TKey key] => _valuesDic.TryGetValue(key, out var value)
+        public TValue this[TKey key] => ValuesDic.TryGetValue(key, out var value)
             ? value
             : throw new KeyNotFoundException($"KeyNotFoundException '{key}'");
 
-        [XmlIgnore] [JsonIgnore] public int Count => _valuesDic.Count;
+        public int Count => ValuesDic.Count;
 
         public event NotifyCollectionChangedEventHandler CollectionChanged = (sender, args) => { };
 
         public bool ContainsKey(TKey key)
         {
-            return _valuesDic.ContainsKey(key);
+            return ValuesDic.ContainsKey(key);
         }
 
         public bool Add(TValue value)
@@ -93,7 +56,7 @@ namespace ProjectCeleste.Misc.Container.Model.Observable
             var key = _keySelector(value);
             try
             {
-                _valuesDic.Add(key, value);
+                ValuesDic.Add(key, value);
                 CollectionChanged(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add,
                     value));
             }
@@ -115,7 +78,7 @@ namespace ProjectCeleste.Misc.Container.Model.Observable
                 try
                 {
                     var key = _keySelector(value);
-                    _valuesDic.Add(key, value);
+                    ValuesDic.Add(key, value);
                     CollectionChanged(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add,
                         value));
                 }
@@ -134,7 +97,7 @@ namespace ProjectCeleste.Misc.Container.Model.Observable
 
         public bool Remove(TKey key)
         {
-            if (!_valuesDic.TryGetValue(key, out var value) || !_valuesDic.Remove(key))
+            if (!ValuesDic.TryGetValue(key, out var value) || !ValuesDic.Remove(key))
                 return false;
 
             CollectionChanged(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove,
@@ -145,7 +108,7 @@ namespace ProjectCeleste.Misc.Container.Model.Observable
 
         public bool Remove(TKey key, out TValue value)
         {
-            if (!_valuesDic.TryGetValue(key, out value) || !_valuesDic.Remove(key))
+            if (!ValuesDic.TryGetValue(key, out value) || !ValuesDic.Remove(key))
                 return false;
 
             CollectionChanged(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove,
@@ -154,17 +117,20 @@ namespace ProjectCeleste.Misc.Container.Model.Observable
             return true;
         }
 
-        public bool Update(TValue value)
+        public bool Update(TValue value, Func<TValue, TValue, bool> equalityComparer = null)
         {
             var keyResult = _keySelector(value);
 
-            if (!_valuesDic.TryGetValue(keyResult, out var item))
+            if (!ValuesDic.TryGetValue(keyResult, out var item))
                 throw new KeyNotFoundException($"KeyNotFoundException '{keyResult}'");
 
             if (ReferenceEquals(value, item) || Equals(value, item))
                 return false;
 
-            _valuesDic[keyResult] = value;
+            if (equalityComparer != null && equalityComparer(value, item))
+                return false;
+
+            ValuesDic[keyResult] = value;
 
             CollectionChanged(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace,
                 value,
@@ -204,7 +170,7 @@ namespace ProjectCeleste.Misc.Container.Model.Observable
 
         public TValue Get(TKey key)
         {
-            return _valuesDic.TryGetValue(key, out var value)
+            return ValuesDic.TryGetValue(key, out var value)
                 ? value
                 : default;
         }
@@ -221,26 +187,13 @@ namespace ProjectCeleste.Misc.Container.Model.Observable
 
         public IEnumerable<TValue> Gets()
         {
-            return _valuesDic.ToArray().Select(p => p.Value);
+            return ValuesDic.Select(p => p.Value);
         }
 
         public void Clear()
         {
-            _valuesDic.Clear();
+            ValuesDic.Clear();
+            CollectionChanged(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
         }
-
-        #region IEnumerable<TValue> Members
-
-        IEnumerator<TValue> IEnumerable<TValue>.GetEnumerator()
-        {
-            return Gets().GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return Gets().GetEnumerator();
-        }
-
-        #endregion
     }
 }

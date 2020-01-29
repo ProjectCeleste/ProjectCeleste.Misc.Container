@@ -1,79 +1,43 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Xml.Serialization;
-using Newtonsoft.Json;
+using JetBrains.Annotations;
 using ProjectCeleste.Misc.Container.Interface;
-using ProjectCeleste.Misc.Container.Misc;
 
 namespace ProjectCeleste.Misc.Container.Model
 {
-    [JsonConverter(typeof(ContainerJsonConverter))]
-    [JsonArray(Title = "Container<TKey, TValue>", Id = "Container<TKey, TValue>",
-        AllowNullItems = false)]
-    [XmlRoot("Container&lt;TKey, TValue&gt;")]
-    public sealed class Container<TKey, TValue> : IContainer<TKey, TValue> where TValue : class
+    public class Container<TKey, TValue> : IContainer<TKey, TValue> where TValue : class
     {
-        [XmlIgnore] [JsonIgnore] private readonly Func<TValue, TKey> _keySelector;
-        [XmlIgnore] [JsonIgnore] private readonly IDictionary<TKey, TValue> _valuesDic;
+        [NotNull] private readonly Func<TValue, TKey> _keySelector;
+        [NotNull] protected internal readonly IDictionary<TKey, TValue> ValuesDic;
 
-        public Container() : this(ContainerUtils.GetKeySelector<TValue, TKey>(), Array.Empty<TValue>(),
-            ContainerEqualityComparer.GetCustomDefaultEqualityComparer<TKey>())
+        public Container([NotNull] Func<TValue, TKey> keySelector) : this(keySelector, Array.Empty<TValue>(),
+            EqualityComparer<TKey>.Default)
         {
         }
 
-        public Container(IEnumerable<TValue> values) : this(ContainerUtils.GetKeySelector<TValue, TKey>(), values,
-            ContainerEqualityComparer.GetCustomDefaultEqualityComparer<TKey>())
+        public Container([NotNull] Func<TValue, TKey> keySelector, [NotNull] IEqualityComparer<TKey> comparer) : this(
+            keySelector, Array.Empty<TValue>(), comparer)
         {
         }
 
-        public Container(IEnumerable<TValue> values, IEqualityComparer<TKey> comparer) : this(
-            ContainerUtils.GetKeySelector<TValue, TKey>(), values, comparer)
+        public Container([NotNull] Func<TValue, TKey> keySelector, [NotNull] [ItemNotNull] IEnumerable<TValue> values) :
+            this(keySelector, values, EqualityComparer<TKey>.Default)
         {
         }
 
-        public Container(Func<TValue, TKey> keySelector) : this(keySelector, Array.Empty<TValue>(),
-            ContainerEqualityComparer.GetCustomDefaultEqualityComparer<TKey>())
-        {
-        }
-
-        public Container(Func<TValue, TKey> keySelector, IEqualityComparer<TKey> comparer) : this(keySelector,
-            Array.Empty<TValue>(), comparer)
-        {
-        }
-
-        public Container(Func<TValue, TKey> keySelector, IEnumerable<TValue> values) : this(keySelector,
-            values, ContainerEqualityComparer.GetCustomDefaultEqualityComparer<TKey>())
-        {
-        }
-
-        public Container(Func<TValue, TKey> keySelector, IEnumerable<TValue> values,
-            IEqualityComparer<TKey> comparer)
+        public Container([NotNull] Func<TValue, TKey> keySelector, [NotNull] [ItemNotNull] IEnumerable<TValue> values,
+            [NotNull] IEqualityComparer<TKey> comparer)
         {
             _keySelector = keySelector;
-            _valuesDic = new Dictionary<TKey, TValue>(comparer);
-            var exceptions = new List<Exception>();
-            foreach (var value in values)
-            {
-                try
-                {
-                    var key = _keySelector(value);
-                    _valuesDic.Add(key, value);
-                }
-                catch (ArgumentException e)
-                {
-                    exceptions.Add(e);
-                }
-            }
-
-            if (exceptions.Count > 0)
-                throw new AggregateException(exceptions);
+            ValuesDic = new Dictionary<TKey, TValue>(comparer);
+            Add(values);
         }
 
+        [Pure]
         public bool ContainsKey(TKey key)
         {
-            return _valuesDic.ContainsKey(key);
+            return ValuesDic.ContainsKey(key);
         }
 
         public bool Add(TValue value)
@@ -81,7 +45,7 @@ namespace ProjectCeleste.Misc.Container.Model
             var key = _keySelector(value);
             try
             {
-                _valuesDic.Add(key, value);
+                ValuesDic.Add(key, value);
             }
 #pragma warning disable CA1031 // Do not catch general exception types
             catch (ArgumentException)
@@ -95,69 +59,72 @@ namespace ProjectCeleste.Misc.Container.Model
 
         public bool Remove(TKey key)
         {
-            return _valuesDic.TryGetValue(key, out _) && _valuesDic.Remove(key);
+            return ValuesDic.TryGetValue(key, out _) && ValuesDic.Remove(key);
         }
 
         public bool Remove(TKey key, out TValue value)
         {
-            return _valuesDic.TryGetValue(key, out value) && _valuesDic.Remove(key);
+            return ValuesDic.TryGetValue(key, out value) && ValuesDic.Remove(key);
         }
 
-        public bool Update(TValue value)
+        public bool Update(TValue value, Func<TValue, TValue, bool> equalityComparer = null)
         {
             var keyResult = _keySelector(value);
 
-            if (!_valuesDic.TryGetValue(keyResult, out var item))
+            if (!ValuesDic.TryGetValue(keyResult, out var item))
                 throw new KeyNotFoundException($"KeyNotFoundException '{keyResult}'");
 
             if (ReferenceEquals(value, item) || Equals(value, item))
                 return false;
 
-            _valuesDic[keyResult] = value;
+            if (equalityComparer != null && equalityComparer(value, item))
+                return false;
+
+            ValuesDic[keyResult] = value;
 
             return true;
         }
 
-//        public bool ChangeKey(TKey oldKey, TKey newKey)
-//        {
-//            if (!_valuesDic.TryGetValue(oldKey, out var value))
-//                throw new KeyNotFoundException($"KeyNotFoundException '{oldKey}'");
+        //        public bool ChangeKey(TKey oldKey, TKey newKey)
+        //        {
+        //            if (!_valuesDic.TryGetValue(oldKey, out var value))
+        //                throw new KeyNotFoundException($"KeyNotFoundException '{oldKey}'");
 
-//            if (_valuesDic.ContainsKey(newKey))
-//                throw new ArgumentException($"Key '{newKey}' already used", nameof(newKey));
+        //            if (_valuesDic.ContainsKey(newKey))
+        //                throw new ArgumentException($"Key '{newKey}' already used", nameof(newKey));
 
-//            _valuesDic.Remove(oldKey);
+        //            _valuesDic.Remove(oldKey);
 
-//            try
-//            {
-//                _valuesDic.Add(newKey, value);
-//            }
-//#pragma warning disable CA1031 // Do not catch general exception types
-//            catch (ArgumentException)
-//            {
-//                _valuesDic.Add(oldKey, value);
-//                return false;
-//            }
-//#pragma warning restore CA1031 // Do not catch general exception types
+        //            try
+        //            {
+        //                _valuesDic.Add(newKey, value);
+        //            }
+        //#pragma warning disable CA1031 // Do not catch general exception types
+        //            catch (ArgumentException)
+        //            {
+        //                _valuesDic.Add(oldKey, value);
+        //                return false;
+        //            }
+        //#pragma warning restore CA1031 // Do not catch general exception types
 
-//            return true;
-//        }
+        //            return true;
+        //        }
 
-        [XmlIgnore]
-        [JsonIgnore]
-        public TValue this[TKey key] => _valuesDic.TryGetValue(key, out var value)
+        public TValue this[TKey key] => ValuesDic.TryGetValue(key, out var value)
             ? value
             : throw new KeyNotFoundException($"KeyNotFoundException '{key}'");
 
-        [XmlIgnore] [JsonIgnore] public int Count => _valuesDic.Count;
+        public int Count => ValuesDic.Count;
 
+        [Pure]
         public TValue Get(TKey key)
         {
-            return _valuesDic.TryGetValue(key, out var value)
+            return ValuesDic.TryGetValue(key, out var value)
                 ? value
                 : default;
         }
 
+        [Pure]
         public TValue Get(Func<TValue, bool> criteria)
         {
             return Gets().FirstOrDefault(criteria);
@@ -165,20 +132,22 @@ namespace ProjectCeleste.Misc.Container.Model
 
         public void Clear()
         {
-            _valuesDic.Clear();
+            ValuesDic.Clear();
         }
 
+        [Pure]
         public IEnumerable<TValue> Gets(Func<TValue, bool> criteria)
         {
             return Gets().Where(criteria);
         }
 
+        [Pure]
         public IEnumerable<TValue> Gets()
         {
-            return _valuesDic.ToArray().Select(p => p.Value);
+            return ValuesDic.Select(p => p.Value);
         }
 
-        public void Add(IEnumerable<TValue> values)
+        public void Add([NotNull] [ItemNotNull] IEnumerable<TValue> values)
         {
             var exceptions = new List<Exception>();
             foreach (var value in values)
@@ -186,7 +155,7 @@ namespace ProjectCeleste.Misc.Container.Model
                 try
                 {
                     var key = _keySelector(value);
-                    _valuesDic.Add(key, value);
+                    ValuesDic.Add(key, value);
                 }
                 catch (ArgumentException e)
                 {
@@ -197,19 +166,5 @@ namespace ProjectCeleste.Misc.Container.Model
             if (exceptions.Count > 0)
                 throw new AggregateException(exceptions);
         }
-
-        #region IEnumerable<TValue> Members
-
-        IEnumerator<TValue> IEnumerable<TValue>.GetEnumerator()
-        {
-            return Gets().GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return Gets().GetEnumerator();
-        }
-
-        #endregion
     }
 }

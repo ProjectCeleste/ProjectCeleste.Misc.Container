@@ -3,13 +3,13 @@ using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace ProjectCeleste.Misc.Container.Misc
+namespace ProjectCeleste.Misc.Container.Utils.JsonConverter
 {
     public interface IContainerJsonConverter
     {
     }
 
-    public class ContainerJsonConverter : JsonConverter
+    public class ContainerJsonConverter : Newtonsoft.Json.JsonConverter
     {
         public override bool CanConvert(Type objectType)
         {

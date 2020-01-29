@@ -1,40 +1,25 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using Newtonsoft.Json;
+using JetBrains.Annotations;
 using ProjectCeleste.Misc.Container.Interface;
-using ProjectCeleste.Misc.Container.Misc;
 
 namespace ProjectCeleste.Misc.Container.Model
 {
-    [JsonConverter(typeof(ContainerJsonConverter))]
-    [JsonArray(Title = "ReadOnlyContainer<TKey, TValue>", Id = "ReadOnlyContainer<TKey, TValue>",
-        AllowNullItems = false)]
-    public sealed class ReadOnlyContainer<TKey, TValue> : IReadOnlyContainer<TKey, TValue> where TValue : class
+    public class ReadOnlyContainer<TKey, TValue> : IReadOnlyContainer<TKey, TValue> where TValue : class
     {
-        [JsonIgnore] private readonly IReadOnlyDictionary<TKey, TValue> _valuesDic;
+        [NotNull] private protected readonly IReadOnlyDictionary<TKey, TValue> ValuesDic;
 
-        public ReadOnlyContainer(IEnumerable<TValue> values) : this(ContainerUtils.GetKeySelector<TValue, TKey>(),
-            values,
-            ContainerEqualityComparer.GetCustomDefaultEqualityComparer<TKey>())
+        public ReadOnlyContainer([NotNull] Func<TValue, TKey> keySelector,
+            [NotNull] [ItemNotNull] IEnumerable<TValue> values) : this(
+            keySelector, values, EqualityComparer<TKey>.Default)
         {
         }
 
-        public ReadOnlyContainer(IEnumerable<TValue> values, IEqualityComparer<TKey> comparer) : this(
-            ContainerUtils.GetKeySelector<TValue, TKey>(), values, comparer)
-        {
-        }
-
-        public ReadOnlyContainer(Func<TValue, TKey> keySelector, IEnumerable<TValue> values) : this(
-            keySelector,
-            values, ContainerEqualityComparer.GetCustomDefaultEqualityComparer<TKey>())
-        {
-        }
-
-        public ReadOnlyContainer(Func<TValue, TKey> keySelector, IEnumerable<TValue> values,
-            IEqualityComparer<TKey> comparer)
+        public ReadOnlyContainer([NotNull] Func<TValue, TKey> keySelector,
+            [NotNull] [ItemNotNull] IEnumerable<TValue> values,
+            [NotNull] IEqualityComparer<TKey> comparer)
         {
             var valuesDic = new Dictionary<TKey, TValue>(comparer);
             var exceptions = new List<Exception>();
@@ -54,55 +39,45 @@ namespace ProjectCeleste.Misc.Container.Model
             if (exceptions.Count > 0)
                 throw new AggregateException(exceptions);
 
-            _valuesDic = new ReadOnlyDictionary<TKey, TValue>(valuesDic);
+            ValuesDic = new ReadOnlyDictionary<TKey, TValue>(valuesDic);
         }
 
+        [Pure]
         public bool ContainsKey(TKey key)
         {
-            return _valuesDic.ContainsKey(key);
+            return ValuesDic.ContainsKey(key);
         }
 
-        [JsonIgnore]
-        public TValue this[TKey key] => _valuesDic.TryGetValue(key, out var value)
+        public TValue this[TKey key] => ValuesDic.TryGetValue(key, out var value)
             ? value
             : throw new KeyNotFoundException($"KeyNotFoundException '{key}'");
 
-        [JsonIgnore] public int Count => _valuesDic.Count;
+        public int Count => ValuesDic.Count;
 
+        [Pure]
         public TValue Get(TKey key)
         {
-            return _valuesDic.TryGetValue(key, out var value)
+            return ValuesDic.TryGetValue(key, out var value)
                 ? value
                 : default;
         }
 
+        [Pure]
         public TValue Get(Func<TValue, bool> criteria)
         {
             return Gets().FirstOrDefault(criteria);
         }
 
+        [Pure]
         public IEnumerable<TValue> Gets(Func<TValue, bool> criteria)
         {
             return Gets().Where(criteria);
         }
 
+        [Pure]
         public IEnumerable<TValue> Gets()
         {
-            return _valuesDic.Values;
+            return ValuesDic.Select(key => key.Value);
         }
-
-        #region IEnumerable<TValue> Members
-
-        IEnumerator<TValue> IEnumerable<TValue>.GetEnumerator()
-        {
-            return _valuesDic.Values.GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return _valuesDic.Values.GetEnumerator();
-        }
-
-        #endregion
     }
 }

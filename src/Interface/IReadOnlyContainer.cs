@@ -1,17 +1,34 @@
 using System;
 using System.Collections.Generic;
-using ProjectCeleste.Misc.Container.Misc;
+using JetBrains.Annotations;
 
 namespace ProjectCeleste.Misc.Container.Interface
 {
-    public interface IReadOnlyContainer<in TKey, out TValue> : IEnumerable<TValue>, IContainerJsonConverter
+    public interface IReadOnlyContainer<in TKey, out TValue>
     {
-        TValue this[TKey key] { get; }
+        [NotNull] TValue this[[NotNull] TKey key] { get; }
+
         int Count { get; }
-        bool ContainsKey(TKey key);
-        TValue Get(Func<TValue, bool> criteria);
-        TValue Get(TKey key);
+
+        [Pure]
+        bool ContainsKey([NotNull] TKey key);
+
+        [CanBeNull]
+        [Pure]
+        TValue Get([NotNull] Func<TValue, bool> criteria);
+
+        [CanBeNull]
+        [Pure]
+        TValue Get([NotNull] TKey key);
+
+        [NotNull]
+        [ItemNotNull]
+        [Pure]
         IEnumerable<TValue> Gets();
-        IEnumerable<TValue> Gets(Func<TValue, bool> criteria);
+
+        [NotNull]
+        [ItemNotNull]
+        [Pure]
+        IEnumerable<TValue> Gets([NotNull] Func<TValue, bool> criteria);
     }
 }
