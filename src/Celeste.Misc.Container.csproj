@@ -4,22 +4,22 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <PackageId>ProjectCeleste.Misc.Container</PackageId>
+    <PackageId>Celeste.Misc.Container</PackageId>
     <PackageLicense>https://github.com/ProjectCeleste/ProjectCeleste.Misc.Container/blob/master/LICENSE</PackageLicense>
     <PackageProjectUrl>https://www.projectceleste.com</PackageProjectUrl>
     <PackageIcon>icon.png</PackageIcon>
     <RepositoryUrl>https://github.com/ProjectCeleste/ProjectCeleste.Misc.Container</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <Description>ProjectCeleste.Misc.Container For Age Of Empires Online Celeste Fan Project
+    <Description>Celeste.Misc.Container For Age Of Empires Online Celeste Fan Project
 
 Visit Us: https://www.projectceleste.com/
 
 Age of Empires Online © Microsoft Corporation. Celeste Fan Project was created under Microsoft's Game Content Usage Rules using assets from Age of Empires Online, and it is not endorsed by or affiliated with Microsoft (See: https://www.xbox.com/en-us/developers/rules).
 	</Description>
-    <PackageTags>projectceleste aoeo ageofempires</PackageTags>
-    <Authors>ProjectCeleste</Authors>
+    <PackageTags>celeste aoeo ageofempires</PackageTags>
+    <Authors>Project Celeste</Authors>
     <Company />
-    <Product>ProjectCeleste.Misc.Container</Product>
+    <Product>Celeste.Misc.Container</Product>
     <Version>1.1.0.0</Version>
     <AssemblyVersion>1.1.0.0</AssemblyVersion>
     <FileVersion>1.1.0.0</FileVersion>
