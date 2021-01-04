@@ -1,4 +1,6 @@
 ﻿# ProjectCeleste.Misc.Container
+ 
+ This repo is no longer maintained. Use https://github.com/ProjectCeleste/ProjectCeleste.Misc.Utils instead.
 
 ProjectCeleste.Misc.Container For Age Of Empires Online Celeste Fan Project
 		
